@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SprintMind AI - Production-Ready Sprint Planner</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="theme-cyberpunk">
+    <div class="app-container">
+        <!-- Header / Navigation -->
+        <header class="navbar">
+            <div class="logo">
+                <i data-lucide="cpu" class="logo-icon"></i>
+                <span class="logo-text">SprintMind <span class="badge">AI Agent</span></span>
+            </div>
+            <div class="navbar-actions">
+                <div class="theme-selector-container">
+                    <i data-lucide="palette" class="theme-icon"></i>
+                    <select id="theme-select" class="theme-select" aria-label="Select color theme">
+                        <option value="theme-cyberpunk">Cyberpunk Glow</option>
+                        <option value="theme-ocean">Ocean Glass</option>
+                        <option value="theme-emerald">Emerald Matrix</option>
+                        <option value="theme-sunset">Sunset Rose</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Layout -->
+        <main class="main-layout">
+            <!-- Left Panel: Input & History Controls -->
+            <section class="control-panel">
+                <div class="card form-card">
+                    <div class="card-header">
+                        <h2><i data-lucide="sparkles"></i> Define Your Goal</h2>
+                        <p>Turn ambitious projects into burnout-proof sprint schedules.</p>
+                    </div>
+                    <form id="sprint-form">
+                        <div class="form-group">
+                            <label for="goal">What is your major goal?</label>
+                            <textarea id="goal" name="goal" rows="4"
+                                placeholder="e.g., Organize a 24-hour national hackathon, launch a SaaS MVP, or prepare for AWS Cloud Certification..."
+                                required></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="timeframe">Timeframe</label>
+                                <input type="text" id="timeframe" name="timeframe" placeholder="e.g., 2 months, 6 weeks"
+                                    required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="hours">Hours / Week</label>
+                                <input type="number" id="hours" name="hours" min="1" max="168" placeholder="e.g., 10"
+                                    required>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="submit-btn" class="btn btn-primary">
+                            <i data-lucide="terminal"></i>
+                            <span>Generate Sprint Plan</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Saved Plans History Widget -->
+                <div class="card history-card">
+                    <div class="card-header flex-between">
+                        <h3><i data-lucide="bookmark"></i> Saved Plans</h3>
+                        <div class="history-actions">
+                            <label for="import-json" class="btn-text text-primary" style="cursor:pointer;"
+                                title="Import Plan JSON">
+                                <i data-lucide="upload"
+                                    style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:2px"></i>Import
+                            </label>
+                            <input type="file" id="import-json" accept=".json" style="display:none;">
+                            <button id="clear-history-btn" class="btn-text text-danger"
+                                title="Clear all local data">Clear</button>
+                        </div>
+                    </div>
+                    <div id="history-list" class="history-list">
+                        <div class="empty-history">No local plans saved yet.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Output & Agent Live Monitor -->
+            <section class="display-panel">
+                <!-- Idle Banner -->
+                <div id="idle-state" class="card empty-state">
+                    <i data-lucide="calendar-range" class="empty-icon animate-pulse"></i>
+                    <h3>Ready to Deconstruct Your Goals</h3>
+                    <p>Enter your goal and weekly workload budget on the left. SprintMind AI will analyze your
+                        requirements, allocate buffers, and layout sprints.</p>
+                </div>
+
+                <!-- Agent Execution Loading Monitor -->
+                <div id="loading-state" class="card loading-card hidden">
+                    <div class="loading-header">
+                        <div class="spinner"></div>
+                        <div>
+                            <h3 id="loading-title">Generating Your Sprint Plan...</h3>
+                            <p class="subtitle">Please wait while SprintMind AI analyzes your goal and creates an
+                                optimized schedule.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error State -->
+                <div id="error-state" class="card error-card hidden">
+                    <i data-lucide="alert-triangle" class="error-icon"></i>
+                    <h3>Generation Failed</h3>
+                    <p id="error-message">An unknown error occurred.</p>
+                    <button id="retry-btn" class="btn btn-secondary">Try Again</button>
+                </div>
+
+                <!-- Generated Plan Output Dashboard -->
+                <div id="plan-dashboard" class="plan-dashboard hidden">
+                    <!-- Executive Summary Banner -->
+                    <div class="card summary-card">
+                        <div class="summary-header">
+                            <div>
+                                <span class="tag">AI-Optimized Sprint Plan</span>
+                                <h1 id="plan-title">Project Title</h1>
+                                <p id="plan-summary" class="summary-text">Summary text goes here...</p>
+                            </div>
+                            <div class="feasibility-box">
+                                <div class="score-circle" id="score-circle">
+                                    <span id="feasibility-score">0%</span>
+                                </div>
+                                <span class="score-label">Feasibility Score</span>
+                            </div>
+                        </div>
+
+                        <div class="plan-metrics-grid">
+                            <div class="metric-item">
+                                <i data-lucide="clock"></i>
+                                <div>
+                                    <small>Weekly Budget</small>
+                                    <strong id="metric-budget">0 hrs/wk</strong>
+                                </div>
+                            </div>
+                            <div class="metric-item">
+                                <i data-lucide="calendar"></i>
+                                <div>
+                                    <small>Total Duration</small>
+                                    <strong id="metric-duration">0 weeks</strong>
+                                </div>
+                            </div>
+                            <div class="metric-item flex-2">
+                                <i data-lucide="heart-pulse"></i>
+                                <div>
+                                    <small>Burnout & Buffer Analysis</small>
+                                    <p id="metric-notes">Notes regarding feasibility...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Statistics Bar -->
+                    <div class="card progress-card">
+                        <div class="progress-details">
+                            <div>
+                                <h3>Overall Project Progress</h3>
+                                <p class="progress-sub"><span id="completed-tasks-count">0</span> of <span
+                                        id="total-tasks-count">0</span> tasks completed (<span
+                                        id="total-hours-completed">0</span>h of <span
+                                        id="total-hours-estimate">0</span>h total)</p>
+                            </div>
+                            <div class="progress-percentage-text" id="progress-percent-label">0%</div>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- View Switcher Tabs and Export Panel -->
+                    <div class="dashboard-controls flex-between">
+                        <div class="tabs-container">
+                            <button class="tab-btn active" id="tab-timeline-btn"><i data-lucide="layers"></i> Timeline
+                                View</button>
+                            <button class="tab-btn" id="tab-kanban-btn"><i data-lucide="kanban"></i> Kanban
+                                Board</button>
+                        </div>
+
+                        <div class="export-container">
+                            <button id="export-dropdown-btn" class="btn btn-secondary btn-sm"><i
+                                    data-lucide="download"></i> Export Plan <i data-lucide="chevron-down"
+                                    style="width:12px;height:12px"></i></button>
+                            <div class="export-dropdown hidden" id="export-dropdown">
+                                <button class="export-option" data-format="json"><i data-lucide="file-json"></i> Export
+                                    JSON</button>
+                                <button class="export-option" data-format="markdown"><i data-lucide="file-text"></i>
+                                    Export Markdown</button>
+                                <button class="export-option" data-format="csv"><i data-lucide="table"></i> Export
+                                    CSV</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sprints Timeline Container -->
+                    <div id="timeline-view" class="timeline-view">
+                        <div class="sprints-header">
+                            <h2>Timeline Board</h2>
+                            <span class="help-text">Click a task checkbox to toggle status. Edit tasks by
+                                double-clicking or hovering.</span>
+                        </div>
+                        <div id="sprints-container" class="sprints-container">
+                            <!-- Sprint items injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Kanban Board Container -->
+                    <div id="kanban-view" class="kanban-view hidden">
+                        <div class="kanban-controls flex-between">
+                            <div class="week-selector">
+                                <label for="kanban-week-select">Focused Sprint:</label>
+                                <select id="kanban-week-select" class="custom-select">
+                                    <!-- Dynamic Options -->
+                                </select>
+                            </div>
+                            <button id="kanban-add-task-btn" class="btn btn-secondary btn-sm"><i data-lucide="plus"></i>
+                                Add New Task</button>
+                        </div>
+
+                        <div class="kanban-board-grid">
+                            <div class="kanban-column" data-status="todo" id="col-todo">
+                                <div class="column-header">
+                                    <div class="header-title">
+                                        <span class="column-indicator todo"></span>
+                                        <h4>To Do</h4>
+                                    </div>
+                                    <span class="column-badge" id="count-todo">0</span>
+                                </div>
+                                <div class="column-tasks" id="tasks-todo">
+                                    <!-- Dynamically filled -->
+                                </div>
+                            </div>
+
+                            <div class="kanban-column" data-status="inprogress" id="col-inprogress">
+                                <div class="column-header">
+                                    <div class="header-title">
+                                        <span class="column-indicator inprogress"></span>
+                                        <h4>In Progress</h4>
+                                    </div>
+                                    <span class="column-badge" id="count-inprogress">0</span>
+                                </div>
+                                <div class="column-tasks" id="tasks-inprogress">
+                                    <!-- Dynamically filled -->
+                                </div>
+                            </div>
+
+                            <div class="kanban-column" data-status="done" id="col-done">
+                                <div class="column-header">
+                                    <div class="header-title">
+                                        <span class="column-indicator done"></span>
+                                        <h4>Completed</h4>
+                                    </div>
+                                    <span class="column-badge" id="count-done">0</span>
+                                </div>
+                                <div class="column-tasks" id="tasks-done">
+                                    <!-- Dynamically filled -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Built for Kaggle 5-Day AI Agents Hackathon | Powered by Google Gemini 2.5 Flash</p>
+        </footer>
+    </div>
+
+    <!-- Modal Dialog: Edit/Add Task -->
+    <div id="task-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content card">
+            <div class="modal-header flex-between">
+                <h3 id="modal-title">Edit Task Details</h3>
+                <button id="close-modal-btn" class="close-btn" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="task-form">
+                <div class="form-group">
+                    <label for="modal-task-name">Task Name</label>
+                    <input type="text" id="modal-task-name" required placeholder="e.g. Draft initial project design">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="modal-task-hours">Estimated Hours</label>
+                        <input type="number" id="modal-task-hours" step="0.25" min="0.25" max="168" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="modal-task-schedule">Suggested Schedule</label>
+                        <input type="text" id="modal-task-schedule" placeholder="e.g. Mon/Wed evenings">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="modal-task-buffer">Contingency / Buffer Notes</label>
+                    <input type="text" id="modal-task-buffer"
+                        placeholder="e.g. Includes extra 1h buffer for bug fixing">
+                </div>
+                <div class="modal-footer flex-between">
+                    <button type="button" id="delete-task-btn" class="btn btn-danger btn-sm"><i
+                            data-lucide="trash-2"></i> Delete</button>
+                    <button type="submit" class="btn btn-primary"><i data-lucide="check-circle"></i> Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
