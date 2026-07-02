@@ -1,6 +1,10 @@
 # SprintMind AI — Burnout-Proof Project Planner
 
 SprintMind AI is a web-based, production-ready project planner that utilizes Google Gemini models to automatically deconstruct high-level goals into organized, weekly sprint schedules. Equipped with custom pacing buffers, interactive timeline views, and Kanban boards, it helps engineers, solo founders, and agile teams transition from loose ambitions to systematic execution without the risk of over-scheduling and fatigue.
+<img width="1917" height="1026" alt="Screenshot 2026-07-02 142811" src="https://github.com/user-attachments/assets/60ab5863-bb75-4474-98eb-4c3f312b4f28" />
+
+<img width="1037" height="995" alt="Screenshot 2026-07-02 144305" src="https://github.com/user-attachments/assets/e05ca60d-9713-49c2-9e9a-a2aa63d49059" />
+<img width="1885" height="982" alt="Screenshot 2026-07-02 150933" src="https://github.com/user-attachments/assets/f2fdad92-9454-4e83-8b1a-de2948e396f3" />
 
 ---
 
